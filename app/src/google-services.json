@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "367725378229",
+    "project_id": "share-your-favorite-location",
+    "storage_bucket": "share-your-favorite-location.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:367725378229:android:4b677741188c1b8706dcfc",
+        "android_client_info": {
+          "package_name": "com.example.projectuas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDu5SbrOyYi1Wou1X9U0tYEwlf1wTC8n4k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
