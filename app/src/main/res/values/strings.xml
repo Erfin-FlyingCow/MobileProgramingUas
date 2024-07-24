@@ -2,4 +2,5 @@
     <string name="app_name">ProjectUAS</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="default_web_client_id">332714422538-afrohc250tquiqpd83ie6l6sbbbmmha8.apps.googleusercontent.com</string>
 </resources>

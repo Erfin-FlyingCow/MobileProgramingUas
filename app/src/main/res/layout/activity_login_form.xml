@@ -8,6 +8,7 @@
     tools:context=".LoginForm">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/cv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
@@ -15,6 +16,7 @@
         app:cardCornerRadius="10dp"
         app:cardElevation="10dp">
         <TextView
+            android:id="@+id/googlelogin"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:text="Login Dengan Akun Google"
@@ -25,5 +27,13 @@
 />
 
     </androidx.cardview.widget.CardView>
+    
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progress"
+        android:layout_below="@+id/cv"
+        android:layout_centerHorizontal="true"
+        android:visibility="gone"/>
 
 </RelativeLayout>
