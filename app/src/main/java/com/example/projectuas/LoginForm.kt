@@ -15,6 +15,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.example.projectuas.MainActivity
 
 class LoginForm : AppCompatActivity() {
 
@@ -61,6 +62,15 @@ class LoginForm : AppCompatActivity() {
         btnLogin.setOnClickListener {
             loginAkunGoogle()
         }
+
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (mauth.currentUser != null) {
+            mainactivity()
+        }
     }
 
     private fun loginAkunGoogle() {
@@ -92,13 +102,15 @@ class LoginForm : AppCompatActivity() {
                 if (task.isSuccessful) {
                     // Sign-in succeeded
                     val user = mauth.currentUser
-                    Intent(this,MainActivity::class.java).also {
-                        startActivity(it)
-                    }
+                    mainactivity()
                 } else {
                     // Sign-in failed
                     Toast.makeText(applicationContext, "Authentication Failed", Toast.LENGTH_SHORT).show()
                 }
             }
     }
+
+    fun mainactivity () {Intent(this,MainActivity::class.java).also {
+        startActivity(it)
+    }}
 }

@@ -6,6 +6,12 @@
         android:id="@+id/tambahTempatFavorite"
         android:icon="@drawable/add"
         android:title="Tambah Tempat Favorite"
-        app:showAsAction="always"/>
+        />
+
+    <item
+        android:id="@+id/logout"
+        android:icon="@drawable/logout"
+        android:title="Log out"/>
+
 
 </menu>

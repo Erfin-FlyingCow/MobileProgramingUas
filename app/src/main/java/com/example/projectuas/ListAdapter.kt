@@ -16,15 +16,15 @@ class ListAdapter(private val lokasilist: List<ListHead>) : RecyclerView.Adapter
 
     override fun onBindViewHolder(holder: Listviewholder, position: Int) {
         val currentItem = lokasilist[position]
-        holder.judul.text = currentItem.judul
-        holder.lokasi.text = currentItem.lokasi
+        holder.nama_lokasi.text = currentItem.nama_lokasi
+        holder.koordinat_lokasi.text = currentItem.koordinat_lokasi
 
     }
 
     override fun getItemCount() = lokasilist.size
 
     class Listviewholder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val judul: TextView = itemView.findViewById(R.id.judul)
-        val lokasi: TextView = itemView.findViewById(R.id.lokasi)
+        val nama_lokasi: TextView = itemView.findViewById(R.id.nama_lokasi)
+        val koordinat_lokasi: TextView = itemView.findViewById(R.id.koordinat_lokasi)
     }
 }

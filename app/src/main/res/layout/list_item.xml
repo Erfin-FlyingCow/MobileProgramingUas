@@ -11,33 +11,34 @@
         android:layout_margin="10dp"
         android:background="#BBD7FA"
         android:clickable="false"
+        android:layout_marginVertical="10dp"
         android:textAlignment="textStart"
         android:foregroundTint="#000000"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/judul"
+            android:id="@+id/nama_lokasi"
             android:layout_weight="2"
-            android:layout_width="5dp"
-            android:layout_height="50dp"
-            android:text="Judul"
-            android:textSize="40dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nama Lokasi"
+            android:textSize="20sp"
             android:singleLine="true"
             android:ellipsize="end"
             android:layout_gravity="center"
-            android:gravity="center"/>
+            android:gravity="center_vertical"/>
 
         <TextView
-            android:id="@+id/lokasi"
+            android:id="@+id/koordinat_lokasi"
             android:layout_weight="2"
-            android:layout_width="5dp"
-            android:layout_height="50dp"
-            android:text="Lokasi"
-            android:textSize="40dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Koordinat Lokasi"
+            android:textSize="20sp"
             android:singleLine="true"
             android:ellipsize="end"
             android:layout_gravity="center"
-            android:gravity="center"/>
+            android:gravity="center_vertical"/>
 
 
     </LinearLayout>
