@@ -1,82 +1,139 @@
 package com.example.projectuas
 
+import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.io.File
+import java.io.FileReader
 
 class HomeFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ListAdapter
     private lateinit var listlokasi: MutableList<ListHead>
-    private lateinit var databaseReference: DatabaseReference
-
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
-        // Initialize RecyclerView and Adapter
         recyclerView = view.findViewById(R.id.Tempatview)
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.setHasFixedSize(true)
 
-        listlokasi = mutableListOf()
-        adapter = ListAdapter(listlokasi)
+        listlokasi = readAllJsonFiles(requireContext()).toMutableList()
+        adapter = ListAdapter(listlokasi, { selectedItem ->
+            // Handle item click
+            val bundle = Bundle().apply {
+                putString("nama_lokasi", selectedItem.nama_lokasi)
+                putString("deskripsi_lokasi", selectedItem.deskripsi_lokasi)
+                putString("koordinat_lokasi", selectedItem.koordinat_lokasi)
+            }
+            val formLokasiFragment = FormLokasi().apply {
+                arguments = bundle
+            }
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, formLokasiFragment)
+                .addToBackStack(null)
+                .commit()
+        }, { position ->
+            showDeleteConfirmationDialog(position)
+        })
         recyclerView.adapter = adapter
-
-        // Get current user and set up Firebase database reference
-        val user = FirebaseAuth.getInstance().currentUser
-        if (user != null) {
-            val uid = user.uid
-            databaseReference = FirebaseDatabase.getInstance().getReference("users").child(uid).child("listHeads")
-
-            // Retrieve data from Firebase
-            databaseReference.addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    listlokasi.clear()
-                    for (postSnapshot in snapshot.children) {
-                        val listHead = postSnapshot.getValue(ListHead::class.java)
-                        if (listHead != null) {
-                            listlokasi.add(listHead)
-                        }
-                    }
-                    adapter.notifyDataSetChanged()
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
-                }
-            })
-        } else {
-            Toast.makeText(context, "User not signed in", Toast.LENGTH_SHORT).show()
-        }
 
         return view
     }
 
-    companion object {
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            HomeFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    private fun showDeleteConfirmationDialog(position: Int) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Hapus Lokasi")
+            .setMessage("Apakah Anda yakin ingin menghapus lokasi ini?")
+            .setPositiveButton("Hapus") { _, _ ->
+                val removedItem = listlokasi[position]
+                adapter.removeItem(position)
+                updateJsonFilesAfterRemoval(removedItem)
             }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun updateJsonFilesAfterRemoval(removedItem: ListHead) {
+        val directory = requireContext().filesDir
+        val files = directory.listFiles { file -> file.extension == "json" } ?: return
+
+        for (file in files) {
+            val fileName = file.name
+            val fileData = readDataFromInternalStorage(requireContext(), fileName).toMutableList()
+
+            if (fileData.contains(removedItem)) {
+                fileData.remove(removedItem)
+                saveDataToInternalStorage(requireContext(), fileName, fileData)
+                break // Assuming the item is only in one file
+            }
+        }
+    }
+
+    private fun readAllJsonFiles(context: Context): List<ListHead> {
+        val directory = context.filesDir
+        val files = directory.listFiles { file -> file.extension == "json" } ?: return emptyList()
+        val gson = Gson()
+        val dataType = object : TypeToken<List<ListHead>>() {}.type
+        val allData = mutableListOf<ListHead>()
+
+        for (file in files) {
+            val fileReader = FileReader(file)
+            val data: List<ListHead> = gson.fromJson(fileReader, dataType)
+            fileReader.close()
+            allData.addAll(data)
+        }
+
+        return allData
+    }
+
+    private fun readDataFromInternalStorage(context: Context, fileName: String): List<ListHead> {
+        val file = File(context.filesDir, fileName)
+        if (!file.exists()) {
+            return emptyList()
+        }
+
+        val fileReader = FileReader(file)
+        val gson = Gson()
+        val dataType = object : TypeToken<List<ListHead>>() {}.type
+        val data: List<ListHead> = gson.fromJson(fileReader, dataType)
+        fileReader.close()
+
+        return data
+    }
+
+    private fun saveDataToInternalStorage(context: Context, fileName: String, data: List<ListHead>) {
+        val file = File(context.filesDir, fileName)
+        val gson = Gson()
+        file.writeText(gson.toJson(data))
+    }
+     fun onItemClick(position: Int) {
+        val item = listlokasi[position]
+        val bundle = Bundle().apply {
+            putString("nama_lokasi", item.nama_lokasi)
+            putString("deskripsi_lokasi", item.deskripsi_lokasi)
+            putString("koordinat_lokasi", item.koordinat_lokasi)
+        }
+        val formLokasiFragment = FormLokasi().apply {
+            arguments = bundle
+        }
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, formLokasiFragment)
+            .addToBackStack(null)
+            .commit()
     }
 }
+
+

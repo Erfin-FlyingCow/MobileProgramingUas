@@ -11,13 +11,7 @@
         android:id="@+id/Tempatview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/list_item"/>
-     <TextView
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:text="This is Home Fragment"
-         android:layout_gravity="center"
-         android:textAlignment="center"
-         android:textSize="20sp"/>
+        tools:listitem="@layout/list_item" />
+
 
 </FrameLayout>
