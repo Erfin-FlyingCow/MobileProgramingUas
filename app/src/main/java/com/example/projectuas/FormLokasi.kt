@@ -40,8 +40,6 @@ class FormLokasi : Fragment() {
     private lateinit var locationManager: LocationManager
     private var locationUpdateCount = 0  // Counter for location updates
     private val maxLocationUpdates = 3   // Maximum number of location updates
-    private var isEditing: Boolean = false // Flag to check if in edit mode
-    private var locationData: ListHead? = null // Data to edit
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -67,72 +65,27 @@ class FormLokasi : Fragment() {
         // Initialize LocationManager
         locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-        // Load data from arguments
         arguments?.let {
             val namaLokasi = it.getString("nama_lokasi")
             val deskripsiLokasi = it.getString("deskripsi_lokasi")
             val koordinatLokasi = it.getString("koordinat_lokasi")
 
-            if (namaLokasi != null) {
-                isEditing = true
-                locationData = ListHead(namaLokasi, deskripsiLokasi.orEmpty(), koordinatLokasi.orEmpty())
-                inputNamaLokas.setText(namaLokasi)
-                inputNamaLokas.isEnabled = false // Disable editing for name
-            } else {
-                isEditing = false
-                inputNamaLokas.isEnabled = true // Enable editing for name
-            }
-
+            inputNamaLokas.setText(namaLokasi)
+            inputNamaLokas.isEnabled=false
             inputDeskripsiLokas.setText(deskripsiLokasi)
 
             koordinatLokasi?.let { coords ->
                 val (lat, lon) = coords.split(", ").map { it.toDouble() }
                 currentLocation = GeoPoint(lat, lon)
                 mapView.controller.setCenter(currentLocation)
-                mapView.controller.setZoom(17.0)
+                mapView.controller.setZoom(15.0)
                 currentMarker = Marker(mapView).apply {
                     position = currentLocation!!
                     title = "Selected Location"
                     mapView.overlays.add(this)
                 }
             }
-        }
 
-        simpanButton.setOnClickListener {
-            val namaLokas = inputNamaLokas.text.toString()
-            val deskripsiLokas = inputDeskripsiLokas.text.toString()
-            val koordinatLokas = currentLocation?.let { "${it.latitude}, ${it.longitude}" } ?: ""
-
-            if (deskripsiLokas.isNotEmpty() && currentLocation != null) {
-                if (isEditing) {
-                    // Update the ListHead object
-                    locationData?.let {
-                        it.deskripsi_lokasi = deskripsiLokas
-                        it.koordinat_lokasi = koordinatLokas
-
-                        val fileName = "${it.nama_lokasi}.json"
-                        val currentData = readDataFromInternalStorage(requireContext(), fileName).toMutableList()
-                        val index = currentData.indexOfFirst { item -> item.nama_lokasi == it.nama_lokasi }
-                        if (index != -1) {
-                            currentData[index] = it
-                            saveDataToInternalStorage(requireContext(), fileName, currentData)
-                        }
-                    }
-                } else {
-                    // Create a new ListHead object
-                    val listHead = ListHead(namaLokas, deskripsiLokas, koordinatLokas)
-
-                    // Save the ListHead data to internal storage
-                    val fileName = "$namaLokas.json"
-                    val currentData = readDataFromInternalStorage(requireContext(), fileName).toMutableList()
-                    currentData.add(listHead)
-                    saveDataToInternalStorage(requireContext(), fileName, currentData)
-                }
-                // Navigate back or show a success message
-                transitionToHomeFragment()
-            } else {
-                Toast.makeText(requireContext(), "Harap isi semua field", Toast.LENGTH_SHORT).show()
-            }
         }
 
         // Request location updates
@@ -142,29 +95,66 @@ class FormLokasi : Fragment() {
         } else {
             startLocationUpdates()
         }
-    }
-    val mapEventsOverlay = MapEventsOverlay(object : MapEventsReceiver {
-        override fun singleTapConfirmedHelper(p: GeoPoint?): Boolean {
-            p?.let {
-                currentLocation = it
-                // Remove previous marker if any
-                currentMarker?.let { marker -> mapView.overlays.remove(marker) }
 
-                // Add new marker
-                currentMarker = Marker(mapView)
-                currentMarker?.position = it
-                currentMarker?.title = "Selected Location"
-                mapView.overlays.add(currentMarker)
+        // Set MapEventsOverlay to detect clicks on the map
+        val mapEventsOverlay = MapEventsOverlay(object : MapEventsReceiver {
+            override fun singleTapConfirmedHelper(p: GeoPoint?): Boolean {
+                p?.let {
+                    currentLocation = it
+                    // Remove previous marker if any
+                    currentMarker?.let { marker -> mapView.overlays.remove(marker) }
 
-                mapView.controller.setCenter(it)
+                    // Add new marker
+                    currentMarker = Marker(mapView)
+                    currentMarker?.position = it
+                    currentMarker?.title = "Selected Location"
+                    mapView.overlays.add(currentMarker)
+
+                    mapView.controller.setCenter(it)
+                }
+                return true
             }
-            return true
-        }
 
-        override fun longPressHelper(p: GeoPoint?): Boolean {
-            return false
+            override fun longPressHelper(p: GeoPoint?): Boolean {
+                return false
+            }
+        })
+
+        mapView.overlays.add(mapEventsOverlay)
+
+        simpanButton.setOnClickListener {
+            val namaLokas = inputNamaLokas.text.toString()
+            val deskripsiLokas = inputDeskripsiLokas.text.toString()
+            val koordinatLokas = currentLocation?.let { "${it.latitude}, ${it.longitude}" } ?: ""
+
+            if (namaLokas.isNotEmpty() && deskripsiLokas.isNotEmpty() && currentLocation != null) {
+                // Read existing data from internal storage
+                val fileName = "$namaLokas.json"
+                val currentData = readDataFromInternalStorage(requireContext(), fileName).toMutableList()
+
+                // Check if the location name already exists
+                val existingItemIndex = currentData.indexOfFirst { it.nama_lokasi == namaLokas }
+
+                if (existingItemIndex != -1) {
+                    // Update existing item
+                    val existingItem = currentData[existingItemIndex]
+                    existingItem.deskripsi_lokasi = deskripsiLokas
+                    existingItem.koordinat_lokasi = koordinatLokas
+                    currentData[existingItemIndex] = existingItem
+                } else {
+                    // Add new item
+                    val newItem = ListHead(namaLokas, deskripsiLokas, koordinatLokas)
+                    currentData.add(newItem)
+                }
+
+                // Save the updated data back to internal storage
+                saveDataToInternalStorage(requireContext(), fileName, currentData)
+                transitionToHomeFragment()
+            } else {
+                Toast.makeText(requireContext(), "Harap isi semua field", Toast.LENGTH_SHORT).show()
+            }
         }
-    })
+    }
 
     private fun startLocationUpdates() {
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, locationListener)
@@ -173,11 +163,12 @@ class FormLokasi : Fragment() {
 
     private val locationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
+
             if (locationUpdateCount < maxLocationUpdates) {
                 val userLocation = GeoPoint(location.latitude, location.longitude)
                 currentLocation = userLocation
                 mapView.controller.setCenter(userLocation)
-                mapView.controller.setZoom(17.0)
+                mapView.controller.setZoom(15.0)
                 locationUpdateCount++
 
                 // Stop location updates after reaching the max count
@@ -190,6 +181,12 @@ class FormLokasi : Fragment() {
         override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
         override fun onProviderEnabled(provider: String) {}
         override fun onProviderDisabled(provider: String) {}
+    }
+
+
+    fun check() : Boolean {
+        inputNamaLokas.isEnabled == false
+        return true
     }
 
     override fun onResume() {

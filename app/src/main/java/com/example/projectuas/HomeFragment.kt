@@ -88,7 +88,6 @@ class HomeFragment : Fragment() {
         val gson = Gson()
         val dataType = object : TypeToken<List<ListHead>>() {}.type
         val allData = mutableListOf<ListHead>()
-
         for (file in files) {
             val fileReader = FileReader(file)
             val data: List<ListHead> = gson.fromJson(fileReader, dataType)
@@ -118,21 +117,6 @@ class HomeFragment : Fragment() {
         val file = File(context.filesDir, fileName)
         val gson = Gson()
         file.writeText(gson.toJson(data))
-    }
-     fun onItemClick(position: Int) {
-        val item = listlokasi[position]
-        val bundle = Bundle().apply {
-            putString("nama_lokasi", item.nama_lokasi)
-            putString("deskripsi_lokasi", item.deskripsi_lokasi)
-            putString("koordinat_lokasi", item.koordinat_lokasi)
-        }
-        val formLokasiFragment = FormLokasi().apply {
-            arguments = bundle
-        }
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, formLokasiFragment)
-            .addToBackStack(null)
-            .commit()
     }
 }
 
